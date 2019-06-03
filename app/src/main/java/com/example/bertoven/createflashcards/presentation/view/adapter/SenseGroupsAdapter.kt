@@ -1,5 +1,6 @@
 package com.example.bertoven.createflashcards.presentation.view.adapter
 
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -44,6 +45,7 @@ class SenseGroupsAdapter(private var senseGroups: ArrayList<SenseGroup>)
             layoutManager = LinearLayoutManager(holder.recyclerView.context)
             isNestedScrollingEnabled = false
             adapter = senseGroupEntriesAdapter
+            addItemDecoration(DividerItemDecoration(context, (layoutManager as LinearLayoutManager).orientation))
         }
 
         senseGroupEntriesAdapter.loadNewData(senseGroupItem.senseGroupEntries)

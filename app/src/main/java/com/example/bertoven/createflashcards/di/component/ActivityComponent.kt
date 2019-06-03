@@ -7,7 +7,7 @@ import com.example.bertoven.createflashcards.di.scope.PerActivity
 import com.example.bertoven.createflashcards.domain.repository.GoogleCustomSearchRepository
 import com.example.bertoven.createflashcards.domain.repository.TranslationRepository
 import com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity
-import com.example.bertoven.createflashcards.utils.AnkiDroidHelper
+import com.example.bertoven.createflashcards.ext.AnkiDroidHelper
 import com.google.gson.Gson
 import dagger.Component
 

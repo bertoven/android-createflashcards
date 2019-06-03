@@ -1,4 +1,4 @@
-package com.example.bertoven.createflashcards.utils
+package com.example.bertoven.createflashcards.ext
 
 import java.util.HashSet
 

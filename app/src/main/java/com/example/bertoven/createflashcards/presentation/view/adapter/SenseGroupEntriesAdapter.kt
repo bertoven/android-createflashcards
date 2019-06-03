@@ -1,10 +1,8 @@
 package com.example.bertoven.createflashcards.presentation.view.adapter
 
 import android.content.Intent
-import android.os.Build
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView
-import android.text.Layout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,10 +12,10 @@ import android.widget.TableLayout
 import android.widget.TextView
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.data.entity.SenseGroupEntry
+import com.example.bertoven.createflashcards.ext.*
 import com.example.bertoven.createflashcards.presentation.view.activity.ACTION_SHOW_TRANSLATION
 import com.example.bertoven.createflashcards.presentation.view.activity.PHRASE_EXTRA
 import com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity
-import com.example.bertoven.createflashcards.utils.*
 
 class SenseGroupEntriesAdapter(private var senseGroupEntries: ArrayList<SenseGroupEntry>)
     : RecyclerView.Adapter<SenseGroupEntriesAdapter.ViewHolder>() {
@@ -94,7 +92,6 @@ class SenseGroupEntriesAdapter(private var senseGroupEntries: ArrayList<SenseGro
 
         val dp4 = dpToPx(examplesContext, 4)
         val dp8 = dpToPx(examplesContext, 8)
-        val dp16 = dpToPx(examplesContext, 16)
 
         for (example in senseGroupEntryItem.examples) {
             val params = LinearLayout.LayoutParams(
@@ -106,36 +103,29 @@ class SenseGroupEntriesAdapter(private var senseGroupEntries: ArrayList<SenseGro
 
             val exampleLinearLayout = LinearLayout(examplesContext).apply {
                 layoutParams = params
-                weightSum = 2F
-                setBackgroundColor(ContextCompat.getColor(examplesContext, R.color.background_light))
+                orientation = LinearLayout.VERTICAL
+                background = ContextCompat.getDrawable(examplesContext, R.drawable.rounded_bg)
 
                 addView(TextView(examplesContext).apply {
                     text = example.first
-                    setPadding(dp8, dp8, dp16, dp8)
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        justificationMode = Layout.JUSTIFICATION_MODE_INTER_WORD
-                    }
+                    setPadding(dp8, dp8, dp8, 0)
 
                     layoutParams = TableLayout.LayoutParams(
-                        0, LinearLayout.LayoutParams.MATCH_PARENT, 1F
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
                     )
                 })
 
                 addView(TextView(examplesContext).apply {
                     text = example.second
-                    setPadding(dp4, dp8, dp8, dp8)
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        justificationMode = Layout.JUSTIFICATION_MODE_INTER_WORD
-                    }
+                    setPadding(dp8, dp8, dp8, dp8)
 
                     layoutParams = TableLayout.LayoutParams(
-                        0, LinearLayout.LayoutParams.MATCH_PARENT, 1F
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
                     )
                 })
             }
-
             holder.examples.addView(exampleLinearLayout)
         }
     }

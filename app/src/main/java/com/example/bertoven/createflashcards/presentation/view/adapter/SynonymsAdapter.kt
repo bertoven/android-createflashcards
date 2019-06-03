@@ -11,9 +11,9 @@ import com.example.bertoven.createflashcards.data.entity.SynonymsEntry
 import com.example.bertoven.createflashcards.presentation.view.activity.ACTION_SHOW_TRANSLATION
 import com.example.bertoven.createflashcards.presentation.view.activity.PHRASE_EXTRA
 import com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity
-import com.example.bertoven.createflashcards.utils.getActivity
-import com.example.bertoven.createflashcards.utils.makeLinkSpan
-import com.example.bertoven.createflashcards.utils.makeLinksFocusable
+import com.example.bertoven.createflashcards.ext.getActivity
+import com.example.bertoven.createflashcards.ext.makeLinkSpan
+import com.example.bertoven.createflashcards.ext.makeLinksFocusable
 
 class SynonymsAdapter(private var synonyms: ArrayList<SynonymsEntry>)
     : RecyclerView.Adapter<SynonymsAdapter.ViewHolder>() {

@@ -1,4 +1,4 @@
-package com.example.bertoven.createflashcards.utils
+package com.example.bertoven.createflashcards.ext
 
 import android.content.Context
 import android.text.SpannableString

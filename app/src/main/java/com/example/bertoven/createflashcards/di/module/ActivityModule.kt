@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.Context
 import com.example.bertoven.createflashcards.di.qualifier.ActivityContext
 import com.example.bertoven.createflashcards.di.scope.PerActivity
-import com.example.bertoven.createflashcards.utils.AnkiDroidHelper
+import com.example.bertoven.createflashcards.ext.AnkiDroidHelper
 import dagger.Module
 import dagger.Provides
 

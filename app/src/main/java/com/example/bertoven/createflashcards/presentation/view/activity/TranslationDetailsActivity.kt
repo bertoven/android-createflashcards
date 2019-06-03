@@ -23,11 +23,11 @@ import com.example.bertoven.createflashcards.di.component.ApplicationComponent
 import com.example.bertoven.createflashcards.di.component.DaggerActivityComponent
 import com.example.bertoven.createflashcards.di.module.ActivityModule
 import com.example.bertoven.createflashcards.domain.Translation
+import com.example.bertoven.createflashcards.ext.AnkiDroidConfig
+import com.example.bertoven.createflashcards.ext.AnkiDroidHelper
 import com.example.bertoven.createflashcards.presentation.presenter.TranslationDetailsPresenter
 import com.example.bertoven.createflashcards.presentation.view.TranslationDetailsView
 import com.example.bertoven.createflashcards.presentation.view.adapter.TranslationPagerAdapter
-import com.example.bertoven.createflashcards.utils.AnkiDroidConfig
-import com.example.bertoven.createflashcards.utils.AnkiDroidHelper
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_translation_details.*
 import kotlinx.android.synthetic.main.content_translation_details.*
@@ -160,11 +160,12 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
         mTranslation = translation
 
         val itemCount = getPageCount(translation)
-
-        viewPager.adapter = TranslationPagerAdapter(this, itemCount,
-            translation, supportFragmentManager)
-
+        val pagerAdapter = TranslationPagerAdapter(this, itemCount, translation, supportFragmentManager)
+        viewPager.adapter = pagerAdapter
         tabLayout.setupWithViewPager(viewPager)
+        for (i in 0..tabLayout.tabCount) {
+            tabLayout.getTabAt(i)?.customView = pagerAdapter.getTabView(this, i)
+        }
         tabLayout.visibility = View.VISIBLE
     }
 

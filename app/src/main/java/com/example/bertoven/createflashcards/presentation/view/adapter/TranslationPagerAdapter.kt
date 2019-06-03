@@ -4,6 +4,9 @@ import android.content.Context
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.app.FragmentPagerAdapter
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.TextView
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.domain.Translation
 import com.example.bertoven.createflashcards.presentation.view.fragment.ContextTranslationsFragment
@@ -82,5 +85,12 @@ class TranslationPagerAdapter(private val mContext: Context,
 
     override fun getCount(): Int {
         return itemCount
+    }
+
+    fun getTabView(context: Context, position: Int): View {
+        val tab = LayoutInflater.from(context).inflate(R.layout.custom_tab, null)
+        val tv = tab.findViewById(R.id.custom_text) as TextView
+        tv.text = getPageTitle(position)
+        return tab
     }
 }

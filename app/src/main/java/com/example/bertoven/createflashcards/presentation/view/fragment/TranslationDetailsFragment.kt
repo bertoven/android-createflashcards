@@ -31,9 +31,9 @@ import com.example.bertoven.createflashcards.presentation.view.activity.Translat
 import com.example.bertoven.createflashcards.presentation.view.adapter.QuickResultsAdapter
 import com.example.bertoven.createflashcards.presentation.view.adapter.SenseGroupsAdapter
 import com.example.bertoven.createflashcards.presentation.view.adapter.SynonymsAdapter
-import com.example.bertoven.createflashcards.utils.dpToPx
-import com.example.bertoven.createflashcards.utils.makeLinkSpan
-import com.example.bertoven.createflashcards.utils.makeLinksFocusable
+import com.example.bertoven.createflashcards.ext.dpToPx
+import com.example.bertoven.createflashcards.ext.makeLinkSpan
+import com.example.bertoven.createflashcards.ext.makeLinksFocusable
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_translation_details.*
 import kotlinx.android.synthetic.main.fragment_translation_details.*

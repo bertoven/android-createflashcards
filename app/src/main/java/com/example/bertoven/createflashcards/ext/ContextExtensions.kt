@@ -1,4 +1,4 @@
-package com.example.bertoven.createflashcards.utils
+package com.example.bertoven.createflashcards.ext
 
 import android.app.Activity
 import android.content.Context

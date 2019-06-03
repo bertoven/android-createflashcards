@@ -81,7 +81,6 @@ class ContextTranslationsFragment : Fragment() {
                     layoutManager = LinearLayoutManager(context)
                     isNestedScrollingEnabled = false
                     adapter = contextTranslationsAdapter
-                    addItemDecoration(DividerItemDecoration(contextRecyclerView.context, LinearLayout.VERTICAL))
                 }
 
                 contextTranslationsAdapter.loadNewData(contextTranslations)

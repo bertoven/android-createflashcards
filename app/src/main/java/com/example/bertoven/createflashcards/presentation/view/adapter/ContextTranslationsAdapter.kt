@@ -1,8 +1,6 @@
 package com.example.bertoven.createflashcards.presentation.view.adapter
 
-import android.os.Build
 import android.support.v7.widget.RecyclerView
-import android.text.Layout
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,15 +33,7 @@ class ContextTranslationsAdapter(private var contextTranslations: ArrayList<Cont
     }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val wordWithContext: TextView = view.findViewById<TextView>(R.id.wordWithContext).apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                justificationMode = Layout.JUSTIFICATION_MODE_INTER_WORD
-            }
-        }
-        val contextTranslation: TextView = view.findViewById<TextView>(R.id.contextTranslation).apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                justificationMode = Layout.JUSTIFICATION_MODE_INTER_WORD
-            }
-        }
+        val wordWithContext: TextView = view.findViewById(R.id.wordWithContext)
+        val contextTranslation: TextView = view.findViewById(R.id.contextTranslation)
     }
 }

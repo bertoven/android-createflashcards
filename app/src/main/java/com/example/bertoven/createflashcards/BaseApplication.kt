@@ -4,7 +4,7 @@ import android.support.multidex.MultiDexApplication
 import com.example.bertoven.createflashcards.di.component.ApplicationComponent
 import com.example.bertoven.createflashcards.di.component.DaggerApplicationComponent
 import com.example.bertoven.createflashcards.di.module.ApplicationModule
-import com.example.bertoven.createflashcards.utils.TimberDebugTreeImpl
+import com.example.bertoven.createflashcards.ext.TimberDebugTreeImpl
 import timber.log.Timber
 import javax.inject.Inject
 

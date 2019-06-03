@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.data.entity.QuickResultsEntry
-import com.example.bertoven.createflashcards.utils.getActivity
+import com.example.bertoven.createflashcards.ext.getActivity
 import kotlinx.android.synthetic.main.activity_translation_details.*
 
 class QuickResultsAdapter(private var quickResults: ArrayList<QuickResultsEntry>)
