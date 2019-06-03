@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.bertoven.createflashcards"
+    tools:ignore="GoogleAppIndexingWarning">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <application
+        android:name="com.example.bertoven.createflashcards.BaseApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name="com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity"
+            android:configChanges="orientation|screenSize"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:theme="@style/AppTheme.NoActionBar.TranslationDetails">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
+        </activity>
+        <activity
+            android:name="com.example.bertoven.createflashcards.presentation.view.activity.SearchActivity"
+            android:label="@string/title_activity_search"
+            android:parentActivityName="com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.app.default_searchable"
+                android:value=".presentation.view.activity.TranslationDetailsActivity" />
+        </activity>
+
+        <provider
+            android:name="com.example.bertoven.createflashcards.database.DictionaryProvider"
+            android:authorities="com.example.bertoven.createflashcards.database.DictionaryProvider"
+            android:exported="false" />
+
+        <service
+            android:name="com.example.bertoven.createflashcards.database.DatabaseService"
+            android:exported="false" />
+    </application>
+
+</manifest>

@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">CreateFlashcards</string>
+    <string name="action_settings">Settings</string>
+    <string name="search_hint">Szukaj wyrażenia</string>
+    <string name="title_activity_searchable">SearchableActivity</string>
+    <string name="action_search">Search</string>
+    <string name="title_activity_translation_details">TranslationDetailsActivity</string>
+    <string name="title_activity_search">SearchActivity</string>
+    <string name="translating_phrase">\"%1$s\"</string>
+    <string name="context_phrase">\"%1$s\" w kontekście</string>
+    <string name="definitions_phrase">\"%1$s\" - definicje</string>
+    <string name="btn_examples">Examples</string>
+    <string name="show_examples">Show examples</string>
+    <string name="synonyms_header">Synonimy</string>
+    <string name="action_add">Add</string>
+    <string name="context_tab">Kontekst</string>
+    <string name="context_not_exists">Brak tłumaczeń w kontekście</string>
+    <string name="translation_not_exists">- tłumaczenie nie istnieje</string>
+    <string name="definitions_tab">Definicje</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_out">Sign Out</string>
+
+    <string name="n_items_added">%d items added to AnkiDroid</string>
+    <string name="card_add_fail">Error adding cards to AnkiDroid</string>
+
+    <string name="create_audio_success">Audio file created</string>
+    <string name="create_audio_file_already_exists">Audio file already exists</string>
+    <string name="create_audio_fail">Error creating audio file</string>
+</resources>
