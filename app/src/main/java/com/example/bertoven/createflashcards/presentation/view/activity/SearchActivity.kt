@@ -3,8 +3,8 @@ package com.example.bertoven.createflashcards.presentation.view.activity
 import android.app.SearchManager
 import android.content.Context
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.SearchView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import android.view.Menu
 import com.example.bertoven.createflashcards.R
 import kotlinx.android.synthetic.main.activity_search.*

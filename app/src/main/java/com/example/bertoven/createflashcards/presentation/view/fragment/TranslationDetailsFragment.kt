@@ -4,11 +4,6 @@ import android.content.Context
 import android.graphics.Typeface
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
-import android.support.v4.app.Fragment
-import android.support.v4.widget.NestedScrollView
-import android.support.v7.widget.CardView
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.StyleSpan
@@ -19,6 +14,8 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.LinearLayout.LayoutParams
 import android.widget.TextView
+import androidx.core.widget.NestedScrollView
+import androidx.fragment.app.Fragment
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.data.entity.QuickResultsEntry
 import com.example.bertoven.createflashcards.data.entity.SynonymsEntry
@@ -26,14 +23,14 @@ import com.example.bertoven.createflashcards.data.entity.TranslationDetails
 import com.example.bertoven.createflashcards.di.component.ActivityComponent
 import com.example.bertoven.createflashcards.di.component.DaggerFragmentComponent
 import com.example.bertoven.createflashcards.domain.Translation
+import com.example.bertoven.createflashcards.ext.dpToPx
+import com.example.bertoven.createflashcards.ext.makeLinkSpan
+import com.example.bertoven.createflashcards.ext.makeLinksFocusable
 import com.example.bertoven.createflashcards.presentation.view.activity.TRANSLATION_EXTRA
 import com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity
 import com.example.bertoven.createflashcards.presentation.view.adapter.QuickResultsAdapter
 import com.example.bertoven.createflashcards.presentation.view.adapter.SenseGroupsAdapter
 import com.example.bertoven.createflashcards.presentation.view.adapter.SynonymsAdapter
-import com.example.bertoven.createflashcards.ext.dpToPx
-import com.example.bertoven.createflashcards.ext.makeLinkSpan
-import com.example.bertoven.createflashcards.ext.makeLinksFocusable
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_translation_details.*
 import kotlinx.android.synthetic.main.fragment_translation_details.*
@@ -41,7 +38,7 @@ import java.util.*
 import javax.inject.Inject
 import kotlin.collections.ArrayList
 
-class TranslationDetailsFragment : Fragment() {
+class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabClickListener {
 
     @Inject
     lateinit var gson: Gson
@@ -75,19 +72,9 @@ class TranslationDetailsFragment : Fragment() {
 
         detailsScrollView.setOnScrollChangeListener(
             NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, _ ->
-                if (scrollY == 0) {
-                    fab.hide()
-                } else {
-                    fab.show()
-                }
+                setFabVisibilityInActivity(scrollY)
             }
         )
-
-        fab.setOnClickListener {
-            activity?.appBarLayout?.setExpanded(true, true)
-            detailsScrollView.scrollTo(0, 0)
-            detailsScrollView.fling(0)
-        }
 
         tts = TextToSpeech(mViewContext.applicationContext, TextToSpeech.OnInitListener { status ->
             if (status != TextToSpeech.ERROR) {
@@ -104,6 +91,27 @@ class TranslationDetailsFragment : Fragment() {
             tts?.shutdown()
         }
         super.onPause()
+    }
+
+    override fun onFabClicked() {
+        activity?.appBarLayout?.setExpanded(true, true)
+        detailsScrollView.scrollTo(0, 0)
+        detailsScrollView.fling(0)
+    }
+
+    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+        super.setUserVisibleHint(isVisibleToUser)
+        if (isVisibleToUser && detailsScrollView != null) {
+            setFabVisibilityInActivity(detailsScrollView.scrollY)
+        }
+    }
+
+    private fun setFabVisibilityInActivity(scrollYPos: Int) {
+        if (scrollYPos == 0) {
+            (activity as TranslationDetailsActivity).setFabVisibility(false)
+        } else {
+            (activity as TranslationDetailsActivity).setFabVisibility(true)
+        }
     }
 
     private fun populateView(translation: Translation) {
@@ -141,13 +149,13 @@ class TranslationDetailsFragment : Fragment() {
     private fun createQuickResultsCard(quickResultEntries: ArrayList<QuickResultsEntry>, params: LayoutParams) {
         val quickResultsAdapter = QuickResultsAdapter(ArrayList())
 
-        val recyclerView = RecyclerView(mViewContext).apply {
-            layoutManager = LinearLayoutManager(context)
+        val recyclerView = androidx.recyclerview.widget.RecyclerView(mViewContext).apply {
+            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
             isNestedScrollingEnabled = false
             adapter = quickResultsAdapter
         }
 
-        val card = CardView(mViewContext).apply {
+        val card = androidx.cardview.widget.CardView(mViewContext).apply {
             layoutParams = params
             setBackgroundResource(R.drawable.quick_results_bg)
             addView(recyclerView)
@@ -164,12 +172,12 @@ class TranslationDetailsFragment : Fragment() {
         for (translationsDetail in translationDetails) {
             val senseGroupsAdapter = SenseGroupsAdapter(ArrayList())
 
-            val recyclerView = RecyclerView(mViewContext).apply {
+            val recyclerView = androidx.recyclerview.widget.RecyclerView(mViewContext).apply {
                 layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.WRAP_CONTENT
                 )
-                layoutManager = LinearLayoutManager(context)
+                layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
                 isNestedScrollingEnabled = false
                 adapter = senseGroupsAdapter
             }
@@ -225,7 +233,7 @@ class TranslationDetailsFragment : Fragment() {
                 addView(recyclerView)
             }
 
-            val card = CardView(mViewContext).apply {
+            val card = androidx.cardview.widget.CardView(mViewContext).apply {
                 layoutParams = params
                 setContentPadding(padding, padding, padding, padding)
                 addView(linearLayout)
@@ -240,12 +248,12 @@ class TranslationDetailsFragment : Fragment() {
     private fun createSynonymsCard(synonyms: ArrayList<SynonymsEntry>, params: LayoutParams, padding: Int) {
         val synonymsAdapter = SynonymsAdapter(ArrayList())
 
-        val recyclerView = RecyclerView(mViewContext).apply {
+        val recyclerView = androidx.recyclerview.widget.RecyclerView(mViewContext).apply {
             layoutParams = LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT
             )
-            layoutManager = LinearLayoutManager(context)
+            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
             isNestedScrollingEnabled = false
             adapter = synonymsAdapter
         }
@@ -263,7 +271,7 @@ class TranslationDetailsFragment : Fragment() {
             addView(recyclerView)
         }
 
-        val card = CardView(mViewContext).apply {
+        val card = androidx.cardview.widget.CardView(mViewContext).apply {
             layoutParams = params
             setContentPadding(padding, padding, padding, padding)
             addView(linearLayout)

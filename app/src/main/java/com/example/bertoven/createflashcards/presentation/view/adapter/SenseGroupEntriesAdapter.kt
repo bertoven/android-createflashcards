@@ -1,8 +1,6 @@
 package com.example.bertoven.createflashcards.presentation.view.adapter
 
 import android.content.Intent
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +8,8 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TableLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.RecyclerView
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.data.entity.SenseGroupEntry
 import com.example.bertoven.createflashcards.ext.*
@@ -98,17 +98,17 @@ class SenseGroupEntriesAdapter(private var senseGroupEntries: ArrayList<SenseGro
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                setMargins(0, dp4, 0, dp4)
+                //                setMargins(0, 0, 0, dp8)
             }
 
             val exampleLinearLayout = LinearLayout(examplesContext).apply {
                 layoutParams = params
                 orientation = LinearLayout.VERTICAL
-                background = ContextCompat.getDrawable(examplesContext, R.drawable.rounded_bg)
 
                 addView(TextView(examplesContext).apply {
                     text = example.first
-                    setPadding(dp8, dp8, dp8, 0)
+                    setPadding(dp8, dp8, dp8, dp8)
+                    background = ContextCompat.getDrawable(examplesContext, R.drawable.rounded_bg)
 
                     layoutParams = TableLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
@@ -118,7 +118,8 @@ class SenseGroupEntriesAdapter(private var senseGroupEntries: ArrayList<SenseGro
 
                 addView(TextView(examplesContext).apply {
                     text = example.second
-                    setPadding(dp8, dp8, dp8, dp8)
+                    setPadding(dp8, dp4, dp8, dp8)
+                    setTextColor(ContextCompat.getColor(context, R.color.divider))
 
                     layoutParams = TableLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,

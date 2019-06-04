@@ -2,12 +2,11 @@ package com.example.bertoven.createflashcards.presentation.view.fragment
 
 import android.content.Context
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.widget.NestedScrollView
-import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.NestedScrollView
+import androidx.fragment.app.Fragment
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.di.component.ActivityComponent
 import com.example.bertoven.createflashcards.di.component.DaggerFragmentComponent
@@ -20,7 +19,7 @@ import kotlinx.android.synthetic.main.activity_translation_details.*
 import kotlinx.android.synthetic.main.fragment_definitions.*
 import javax.inject.Inject
 
-class DefinitionsFragment : Fragment() {
+class DefinitionsFragment : Fragment(), TranslationDetailsActivity.OnFabClickListener {
 
     @Inject
     lateinit var gson: Gson
@@ -53,21 +52,31 @@ class DefinitionsFragment : Fragment() {
 
         definitionsScrollView.setOnScrollChangeListener(
             NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, _ ->
-                if (scrollY == 0) {
-                    definitionsFab.hide()
-                } else {
-                    definitionsFab.show()
-                }
+                setFabVisibilityInActivity(scrollY)
             }
         )
-
-        definitionsFab.setOnClickListener {
-            activity?.appBarLayout?.setExpanded(true, true)
-            definitionsScrollView.scrollTo(0, 0)
-            definitionsScrollView.fling(0)
-        }
-
         populateView(translation)
+    }
+
+    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+        super.setUserVisibleHint(isVisibleToUser)
+        if (isVisibleToUser && definitionsScrollView != null) {
+            setFabVisibilityInActivity(definitionsScrollView.scrollY)
+        }
+    }
+
+    override fun onFabClicked() {
+        activity?.appBarLayout?.setExpanded(true, true)
+        definitionsScrollView.scrollTo(0, 0)
+        definitionsScrollView.fling(0)
+    }
+
+    private fun setFabVisibilityInActivity(scrollYPos: Int) {
+        if (scrollYPos == 0) {
+            (activity as TranslationDetailsActivity).setFabVisibility(false)
+        } else {
+            (activity as TranslationDetailsActivity).setFabVisibility(true)
+        }
     }
 
     private fun populateView(translation: Translation) {
@@ -77,7 +86,7 @@ class DefinitionsFragment : Fragment() {
             definitionsPhrase.text = mViewContext.getString(R.string.definitions_phrase, translatingPhrase)
 
             definitionsRecyclerView.apply {
-                layoutManager = LinearLayoutManager(context)
+                layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
                 isNestedScrollingEnabled = false
                 adapter = definitionsAdapter
             }

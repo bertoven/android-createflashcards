@@ -2,14 +2,11 @@ package com.example.bertoven.createflashcards.presentation.view.fragment
 
 import android.content.Context
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.widget.NestedScrollView
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
+import androidx.core.widget.NestedScrollView
+import androidx.fragment.app.Fragment
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.di.component.ActivityComponent
 import com.example.bertoven.createflashcards.di.component.DaggerFragmentComponent
@@ -17,12 +14,13 @@ import com.example.bertoven.createflashcards.domain.Translation
 import com.example.bertoven.createflashcards.presentation.view.activity.TRANSLATION_EXTRA
 import com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity
 import com.example.bertoven.createflashcards.presentation.view.adapter.ContextTranslationsAdapter
+import com.google.android.material.appbar.AppBarLayout
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_translation_details.*
 import kotlinx.android.synthetic.main.fragment_context_translations.*
 import javax.inject.Inject
 
-class ContextTranslationsFragment : Fragment() {
+class ContextTranslationsFragment : Fragment(), TranslationDetailsActivity.OnFabClickListener {
 
     @Inject
     lateinit var gson: Gson
@@ -55,21 +53,30 @@ class ContextTranslationsFragment : Fragment() {
 
         contextScrollView.setOnScrollChangeListener(
             NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, _ ->
-                if (scrollY == 0) {
-                    contextFab.hide()
-                } else {
-                    contextFab.show()
-                }
+                setFabVisibilityInActivity(scrollY)
             }
         )
 
-        contextFab.setOnClickListener {
-            activity?.appBarLayout?.setExpanded(true, true)
-            contextScrollView.scrollTo(0, 0)
-            contextScrollView.fling(0)
-        }
-
         populateView(translation)
+    }
+    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+        super.setUserVisibleHint(isVisibleToUser)
+        if (isVisibleToUser && contextScrollView != null) {
+            setFabVisibilityInActivity(contextScrollView.scrollY)
+        }
+    }
+
+    private fun setFabVisibilityInActivity(scrollYPos: Int) {
+        if (scrollYPos == 0) {
+            (activity as TranslationDetailsActivity).setFabVisibility(false)
+        } else {
+            (activity as TranslationDetailsActivity).setFabVisibility(true)
+        }
+    }
+    override fun onFabClicked() {
+        activity?.appBarLayout?.setExpanded(true, true)
+        contextScrollView.scrollTo(0, 0)
+        contextScrollView.fling(0)
     }
 
     private fun populateView(translation: Translation) {
@@ -78,7 +85,7 @@ class ContextTranslationsFragment : Fragment() {
         translation.apply {
             contextPhrase.text = if (contextTranslations != null) {
                 contextRecyclerView.apply {
-                    layoutManager = LinearLayoutManager(context)
+                    layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
                     isNestedScrollingEnabled = false
                     adapter = contextTranslationsAdapter
                 }

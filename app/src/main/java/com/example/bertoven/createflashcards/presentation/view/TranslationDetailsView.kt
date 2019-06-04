@@ -9,4 +9,5 @@ interface TranslationDetailsView {
     fun showNoTranslation()
     fun onGetImagesDataSuccess(imagesData: ImagesData)
     fun onGetImagesDataError(ex: Throwable)
+    fun setFabVisibility(visible: Boolean)
 }

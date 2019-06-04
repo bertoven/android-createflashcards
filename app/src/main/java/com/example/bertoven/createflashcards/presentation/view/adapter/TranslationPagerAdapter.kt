@@ -1,12 +1,13 @@
 package com.example.bertoven.createflashcards.presentation.view.adapter
 
 import android.content.Context
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentManager
-import android.support.v4.app.FragmentPagerAdapter
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentPagerAdapter
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.domain.Translation
 import com.example.bertoven.createflashcards.presentation.view.fragment.ContextTranslationsFragment
@@ -20,6 +21,8 @@ class TranslationPagerAdapter(private val mContext: Context,
                               fm: FragmentManager) : FragmentPagerAdapter(fm) {
 
     private val gson = Gson()
+    var currentFragment: Fragment? = null
+        private set
 
     override fun getItem(position: Int): Fragment {
         val translationJson = gson.toJson(translation)
@@ -35,9 +38,9 @@ class TranslationPagerAdapter(private val mContext: Context,
                 0 -> TranslationDetailsFragment.newInstance(translationJson)
                 1 -> {
                     if (translation.definitions != null) {
-                        DefinitionsFragment.newInstance(translationJson)
+                        DefinitionsFragment.newInstance(translationJson) as Fragment
                     } else {
-                        ContextTranslationsFragment.newInstance(translationJson)
+                        ContextTranslationsFragment.newInstance(translationJson) as Fragment
                     }
                 }
                 else -> TranslationDetailsFragment.newInstance(translationJson)
@@ -85,6 +88,13 @@ class TranslationPagerAdapter(private val mContext: Context,
 
     override fun getCount(): Int {
         return itemCount
+    }
+
+    override fun setPrimaryItem(container: ViewGroup, position: Int, obj: Any) {
+        if (currentFragment !== obj) {
+            currentFragment = obj as Fragment
+        }
+        super.setPrimaryItem(container, position, obj)
     }
 
     fun getTabView(context: Context, position: Int): View {

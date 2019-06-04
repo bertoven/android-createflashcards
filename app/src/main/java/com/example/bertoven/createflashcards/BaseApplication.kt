@@ -1,6 +1,6 @@
 package com.example.bertoven.createflashcards
 
-import android.support.multidex.MultiDexApplication
+import androidx.multidex.MultiDexApplication
 import com.example.bertoven.createflashcards.di.component.ApplicationComponent
 import com.example.bertoven.createflashcards.di.component.DaggerApplicationComponent
 import com.example.bertoven.createflashcards.di.module.ApplicationModule

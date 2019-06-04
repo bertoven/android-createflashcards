@@ -1,19 +1,19 @@
 package com.example.bertoven.createflashcards.presentation.view.adapter
 
 import android.content.Intent
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.data.entity.SynonymsEntry
-import com.example.bertoven.createflashcards.presentation.view.activity.ACTION_SHOW_TRANSLATION
-import com.example.bertoven.createflashcards.presentation.view.activity.PHRASE_EXTRA
-import com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity
 import com.example.bertoven.createflashcards.ext.getActivity
 import com.example.bertoven.createflashcards.ext.makeLinkSpan
 import com.example.bertoven.createflashcards.ext.makeLinksFocusable
+import com.example.bertoven.createflashcards.presentation.view.activity.ACTION_SHOW_TRANSLATION
+import com.example.bertoven.createflashcards.presentation.view.activity.PHRASE_EXTRA
+import com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity
 
 class SynonymsAdapter(private var synonyms: ArrayList<SynonymsEntry>)
     : RecyclerView.Adapter<SynonymsAdapter.ViewHolder>() {

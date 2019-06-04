@@ -6,11 +6,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
 import android.speech.tts.TextToSpeech
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.core.view.isVisible
 import com.example.bertoven.createflashcards.BaseApplication
 import com.example.bertoven.createflashcards.BuildConfig
 import com.example.bertoven.createflashcards.R
@@ -28,6 +29,10 @@ import com.example.bertoven.createflashcards.ext.AnkiDroidHelper
 import com.example.bertoven.createflashcards.presentation.presenter.TranslationDetailsPresenter
 import com.example.bertoven.createflashcards.presentation.view.TranslationDetailsView
 import com.example.bertoven.createflashcards.presentation.view.adapter.TranslationPagerAdapter
+import com.example.bertoven.createflashcards.presentation.view.fragment.ContextTranslationsFragment
+import com.example.bertoven.createflashcards.presentation.view.fragment.DefinitionsFragment
+import com.example.bertoven.createflashcards.presentation.view.fragment.TranslationDetailsFragment
+import com.google.android.material.appbar.AppBarLayout
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_translation_details.*
 import kotlinx.android.synthetic.main.content_translation_details.*
@@ -48,6 +53,10 @@ const val ACTION_SHOW_TRANSLATION = "showTranslation"
 private const val FILE_ALREADY_EXISTS = -2
 
 class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
+
+    interface OnFabClickListener {
+        fun onFabClicked()
+    }
 
     @Inject
     lateinit var translationDetailsPresenter: TranslationDetailsPresenter
@@ -163,6 +172,12 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
         val pagerAdapter = TranslationPagerAdapter(this, itemCount, translation, supportFragmentManager)
         viewPager.adapter = pagerAdapter
         tabLayout.setupWithViewPager(viewPager)
+        fab.setOnClickListener {
+            val currentFragment = pagerAdapter.currentFragment
+            if (currentFragment is OnFabClickListener) {
+                currentFragment.onFabClicked()
+            }
+        }
         for (i in 0..tabLayout.tabCount) {
             tabLayout.getTabAt(i)?.customView = pagerAdapter.getTabView(this, i)
         }
@@ -411,6 +426,10 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
             // API indicates that a 0 return value is an error
             Toast.makeText(this, resources.getString(R.string.card_add_fail), Toast.LENGTH_LONG).show()
         }
+    }
+
+    override fun setFabVisibility(visible: Boolean) {
+        fab.isVisible = visible
     }
 
     companion object {
