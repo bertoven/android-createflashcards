@@ -51,8 +51,8 @@ class DefinitionsFragment : Fragment(), TranslationDetailsActivity.OnFabClickLis
         val translation: Translation = gson.fromJson(translationJson, Translation::class.java)
 
         definitionsScrollView.setOnScrollChangeListener(
-            NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, _ ->
-                setFabVisibilityInActivity(scrollY)
+            NestedScrollView.OnScrollChangeListener { _, _, _, _, _ ->
+                setFabVisibilityInActivity(shouldFabBeVisible())
             }
         )
         populateView(translation)
@@ -60,8 +60,23 @@ class DefinitionsFragment : Fragment(), TranslationDetailsActivity.OnFabClickLis
 
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {
         super.setUserVisibleHint(isVisibleToUser)
-        if (isVisibleToUser && definitionsScrollView != null) {
-            setFabVisibilityInActivity(definitionsScrollView.scrollY)
+        if (isVisibleToUser) {
+            setFabVisibilityInActivity(shouldFabBeVisible())
+        }
+    }
+
+    private fun shouldFabBeVisible(): Boolean {
+        if (definitionsScrollView == null) {
+            return false
+        }
+        val view = definitionsScrollView.getChildAt(definitionsScrollView.childCount - 1) as View
+        val diff = view.bottom - (definitionsScrollView.height + definitionsScrollView.scrollY)
+        return diff != 0 && definitionsScrollView.scrollY != 0
+    }
+
+    private fun setFabVisibilityInActivity(visible: Boolean) {
+        if (activity != null) {
+            (activity as TranslationDetailsActivity).setFabVisibility(visible)
         }
     }
 
@@ -69,14 +84,6 @@ class DefinitionsFragment : Fragment(), TranslationDetailsActivity.OnFabClickLis
         activity?.appBarLayout?.setExpanded(true, true)
         definitionsScrollView.scrollTo(0, 0)
         definitionsScrollView.fling(0)
-    }
-
-    private fun setFabVisibilityInActivity(scrollYPos: Int) {
-        if (scrollYPos == 0) {
-            (activity as TranslationDetailsActivity).setFabVisibility(false)
-        } else {
-            (activity as TranslationDetailsActivity).setFabVisibility(true)
-        }
     }
 
     private fun populateView(translation: Translation) {

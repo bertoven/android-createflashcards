@@ -14,9 +14,13 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.LinearLayout.LayoutParams
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.bertoven.createflashcards.R
+import com.example.bertoven.createflashcards.data.entity.ImagesData
 import com.example.bertoven.createflashcards.data.entity.QuickResultsEntry
 import com.example.bertoven.createflashcards.data.entity.SynonymsEntry
 import com.example.bertoven.createflashcards.data.entity.TranslationDetails
@@ -28,9 +32,14 @@ import com.example.bertoven.createflashcards.ext.makeLinkSpan
 import com.example.bertoven.createflashcards.ext.makeLinksFocusable
 import com.example.bertoven.createflashcards.presentation.view.activity.TRANSLATION_EXTRA
 import com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity
+import com.example.bertoven.createflashcards.presentation.view.adapter.ImagesDataAdapter
 import com.example.bertoven.createflashcards.presentation.view.adapter.QuickResultsAdapter
 import com.example.bertoven.createflashcards.presentation.view.adapter.SenseGroupsAdapter
 import com.example.bertoven.createflashcards.presentation.view.adapter.SynonymsAdapter
+import com.google.android.flexbox.FlexDirection
+import com.google.android.flexbox.FlexWrap
+import com.google.android.flexbox.FlexboxLayoutManager
+import com.google.android.flexbox.JustifyContent
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_translation_details.*
 import kotlinx.android.synthetic.main.fragment_translation_details.*
@@ -71,18 +80,21 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
         val translation = gson.fromJson(translationJson, Translation::class.java)
 
         detailsScrollView.setOnScrollChangeListener(
-            NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, _ ->
-                setFabVisibilityInActivity(scrollY)
+            NestedScrollView.OnScrollChangeListener { _, _, _, _, _ ->
+                setFabVisibilityInActivity(shouldFabBeVisible())
             }
         )
 
+        populateView(translation)
+    }
+
+    override fun onResume() {
+        super.onResume()
         tts = TextToSpeech(mViewContext.applicationContext, TextToSpeech.OnInitListener { status ->
             if (status != TextToSpeech.ERROR) {
                 tts?.language = Locale.UK
             }
         })
-
-        populateView(translation)
     }
 
     override fun onPause() {
@@ -101,16 +113,23 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
 
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {
         super.setUserVisibleHint(isVisibleToUser)
-        if (isVisibleToUser && detailsScrollView != null) {
-            setFabVisibilityInActivity(detailsScrollView.scrollY)
+        if (isVisibleToUser) {
+            setFabVisibilityInActivity(shouldFabBeVisible())
         }
     }
 
-    private fun setFabVisibilityInActivity(scrollYPos: Int) {
-        if (scrollYPos == 0) {
-            (activity as TranslationDetailsActivity).setFabVisibility(false)
-        } else {
-            (activity as TranslationDetailsActivity).setFabVisibility(true)
+    private fun shouldFabBeVisible(): Boolean {
+        if (detailsScrollView == null) {
+            return false
+        }
+        val view = detailsScrollView.getChildAt(detailsScrollView.childCount - 1) as View
+        val diff = view.bottom - (detailsScrollView.height + detailsScrollView.scrollY)
+        return diff != 0 && detailsScrollView.scrollY != 0
+    }
+
+    private fun setFabVisibilityInActivity(visible: Boolean) {
+        if (activity != null) {
+            (activity as TranslationDetailsActivity).setFabVisibility(visible)
         }
     }
 
@@ -127,6 +146,7 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
             detailsPhrase.text = mViewContext.getString(R.string.translating_phrase, translatingPhrase)
 
             createQuickResultsCard(quickResultsEntries!!, params)
+            createImagesCard(imagesData!!, params, dp16)
             createTranslationsDetailsCards(translationDetails!!, params, dp16)
 
             if (synonyms != null) {
@@ -149,21 +169,47 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
     private fun createQuickResultsCard(quickResultEntries: ArrayList<QuickResultsEntry>, params: LayoutParams) {
         val quickResultsAdapter = QuickResultsAdapter(ArrayList())
 
-        val recyclerView = androidx.recyclerview.widget.RecyclerView(mViewContext).apply {
-            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        val recyclerView = RecyclerView(mViewContext).apply {
+            layoutManager = LinearLayoutManager(context)
             isNestedScrollingEnabled = false
             adapter = quickResultsAdapter
         }
 
-        val card = androidx.cardview.widget.CardView(mViewContext).apply {
+        val card = CardView(mViewContext).apply {
             layoutParams = params
             setBackgroundResource(R.drawable.quick_results_bg)
             addView(recyclerView)
         }
 
         translationCards.addView(card)
-
         quickResultsAdapter.loadNewData(quickResultEntries)
+    }
+
+    private fun createImagesCard(imagesData: ImagesData, params: LayoutParams, padding: Int) {
+        val imagesDataAdapter = ImagesDataAdapter(emptyList())
+
+        val recyclerView = RecyclerView(mViewContext).apply {
+            layoutManager = FlexboxLayoutManager(context).also {
+                it.flexWrap = FlexWrap.WRAP
+                it.flexDirection = FlexDirection.ROW
+                it.justifyContent = JustifyContent.SPACE_EVENLY
+            }
+            isNestedScrollingEnabled = false
+            adapter = imagesDataAdapter
+            layoutParams = LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+            )
+        }
+
+        val card = CardView(mViewContext).apply {
+            layoutParams = params
+            setContentPadding(padding, padding, padding, padding)
+            addView(recyclerView)
+        }
+
+        translationCards.addView(card)
+        imagesDataAdapter.loadData(imagesData.items)
     }
 
     private fun createTranslationsDetailsCards(translationDetails: ArrayList<TranslationDetails>,
@@ -172,12 +218,12 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
         for (translationsDetail in translationDetails) {
             val senseGroupsAdapter = SenseGroupsAdapter(ArrayList())
 
-            val recyclerView = androidx.recyclerview.widget.RecyclerView(mViewContext).apply {
+            val recyclerView = RecyclerView(mViewContext).apply {
                 layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.WRAP_CONTENT
                 )
-                layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+                layoutManager = LinearLayoutManager(context)
                 isNestedScrollingEnabled = false
                 adapter = senseGroupsAdapter
             }
@@ -233,7 +279,7 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
                 addView(recyclerView)
             }
 
-            val card = androidx.cardview.widget.CardView(mViewContext).apply {
+            val card = CardView(mViewContext).apply {
                 layoutParams = params
                 setContentPadding(padding, padding, padding, padding)
                 addView(linearLayout)
@@ -248,12 +294,12 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
     private fun createSynonymsCard(synonyms: ArrayList<SynonymsEntry>, params: LayoutParams, padding: Int) {
         val synonymsAdapter = SynonymsAdapter(ArrayList())
 
-        val recyclerView = androidx.recyclerview.widget.RecyclerView(mViewContext).apply {
+        val recyclerView = RecyclerView(mViewContext).apply {
             layoutParams = LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT
             )
-            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+            layoutManager = LinearLayoutManager(context)
             isNestedScrollingEnabled = false
             adapter = synonymsAdapter
         }
@@ -271,7 +317,7 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
             addView(recyclerView)
         }
 
-        val card = androidx.cardview.widget.CardView(mViewContext).apply {
+        val card = CardView(mViewContext).apply {
             layoutParams = params
             setContentPadding(padding, padding, padding, padding)
             addView(linearLayout)

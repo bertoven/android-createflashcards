@@ -8,5 +8,6 @@ data class Translation(
     val translationDetails: ArrayList<TranslationDetails>?,
     val synonyms: ArrayList<SynonymsEntry>?,
     val contextTranslations: ArrayList<ContextTranslation>?,
-    val definitions: ArrayList<DefinitionsLexicalEntry>?
+    val definitions: ArrayList<DefinitionsLexicalEntry>?,
+    val imagesData: ImagesData?
 )

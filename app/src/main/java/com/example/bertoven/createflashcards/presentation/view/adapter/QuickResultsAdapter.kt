@@ -1,21 +1,21 @@
 package com.example.bertoven.createflashcards.presentation.view.adapter
 
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.data.entity.QuickResultsEntry
 import com.example.bertoven.createflashcards.ext.getActivity
 import kotlinx.android.synthetic.main.activity_translation_details.*
 
 class QuickResultsAdapter(private var quickResults: ArrayList<QuickResultsEntry>)
-    : androidx.recyclerview.widget.RecyclerView.Adapter<QuickResultsAdapter.ViewHolder>() {
+    : RecyclerView.Adapter<QuickResultsAdapter.ViewHolder>() {
 
-    private lateinit var mRecyclerView: androidx.recyclerview.widget.RecyclerView
+    private lateinit var mRecyclerView: RecyclerView
 
-    override fun onAttachedToRecyclerView(recyclerView: androidx.recyclerview.widget.RecyclerView) {
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
         mRecyclerView = recyclerView
     }
@@ -44,13 +44,13 @@ class QuickResultsAdapter(private var quickResults: ArrayList<QuickResultsEntry>
             baseWord.text = quickResultsItem.baseWord
             baseWord.setOnClickListener {
                 it.context.getActivity()?.appBarLayout?.setExpanded(false, true)
-                contentScrollView.scrollTo(0, translationCards.getChildAt(position + 1).top)
+                contentScrollView.scrollTo(0, translationCards.getChildAt(position + 2).top)
             }
             translations.text = quickResultsItem.translations.joinToString(", ")
         }
     }
 
-    class ViewHolder(view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         var baseWord: TextView = view.findViewById(R.id.baseWord)
         var translations: TextView = view.findViewById(R.id.translations)
     }

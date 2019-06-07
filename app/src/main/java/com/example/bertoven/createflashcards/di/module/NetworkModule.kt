@@ -58,5 +58,5 @@ class NetworkModule {
     internal fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor =
         HttpLoggingInterceptor {message ->
             Timber.d(message)
-        }.setLevel(HttpLoggingInterceptor.Level.BASIC)
+        }.setLevel(HttpLoggingInterceptor.Level.BODY)
 }

@@ -1,9 +1,15 @@
 package com.example.bertoven.createflashcards.data.entity
 
-class ImagesData(
+data class ImagesData(
     val items: List<ImagesDataItem>
 )
 
-class ImagesDataItem(
-    val link: String
+data class ImagesDataItem(
+    val link: String,
+    val image: ImageInfo
+)
+
+data class ImageInfo(
+    val height: Int,
+    val width: Int
 )

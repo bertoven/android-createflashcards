@@ -6,14 +6,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
 import android.speech.tts.TextToSpeech
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import com.example.bertoven.createflashcards.BaseApplication
-import com.example.bertoven.createflashcards.BuildConfig
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.data.entity.DefinitionsLexicalEntry
 import com.example.bertoven.createflashcards.data.entity.ImagesData
@@ -29,10 +28,6 @@ import com.example.bertoven.createflashcards.ext.AnkiDroidHelper
 import com.example.bertoven.createflashcards.presentation.presenter.TranslationDetailsPresenter
 import com.example.bertoven.createflashcards.presentation.view.TranslationDetailsView
 import com.example.bertoven.createflashcards.presentation.view.adapter.TranslationPagerAdapter
-import com.example.bertoven.createflashcards.presentation.view.fragment.ContextTranslationsFragment
-import com.example.bertoven.createflashcards.presentation.view.fragment.DefinitionsFragment
-import com.example.bertoven.createflashcards.presentation.view.fragment.TranslationDetailsFragment
-import com.google.android.material.appbar.AppBarLayout
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_translation_details.*
 import kotlinx.android.synthetic.main.content_translation_details.*
@@ -198,26 +193,8 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
                 ankiDroidHelper.requestPermission(this, RC_PERM_REQUEST)
                 return true
             }
-            getImagesForTranslation(mTranslation!!.translatingPhrase)
         }
         return true
-    }
-
-    private fun getImagesForTranslation(translationPhrase: String) {
-        val apiKey = BuildConfig.GOOGLE_API_KEY
-        val cx = BuildConfig.SEARCH_ENGINE_ID
-        val urlString = "https://www.googleapis.com/customsearch/v1?q=$translationPhrase&key=$apiKey&cx=$cx&alt=json&searchType=image"
-        translationDetailsPresenter.getImagesData(urlString)
-    }
-
-    override fun onGetImagesDataSuccess(imagesData: ImagesData) {
-        val cardData = getCardDataWithoutImage()
-        cardData["images"] = getImagesHtml(imagesData)
-        addCardsToAnkiDroid(cardData)
-    }
-
-    override fun onGetImagesDataError(ex: Throwable) {
-        addCardsToAnkiDroid(getCardDataWithoutImage())
     }
 
     private fun getCardDataWithoutImage(): HashMap<String, String> = hashMapOf(

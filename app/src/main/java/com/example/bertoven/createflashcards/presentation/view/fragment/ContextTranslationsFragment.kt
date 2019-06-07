@@ -14,7 +14,6 @@ import com.example.bertoven.createflashcards.domain.Translation
 import com.example.bertoven.createflashcards.presentation.view.activity.TRANSLATION_EXTRA
 import com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity
 import com.example.bertoven.createflashcards.presentation.view.adapter.ContextTranslationsAdapter
-import com.google.android.material.appbar.AppBarLayout
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_translation_details.*
 import kotlinx.android.synthetic.main.fragment_context_translations.*
@@ -52,27 +51,35 @@ class ContextTranslationsFragment : Fragment(), TranslationDetailsActivity.OnFab
         val translation: Translation = gson.fromJson(translationJson, Translation::class.java)
 
         contextScrollView.setOnScrollChangeListener(
-            NestedScrollView.OnScrollChangeListener { _, _, scrollY, _, _ ->
-                setFabVisibilityInActivity(scrollY)
+            NestedScrollView.OnScrollChangeListener { _, _, _, _, _ ->
+                setFabVisibilityInActivity(shouldFabBeVisible())
             }
         )
-
         populateView(translation)
     }
+
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {
         super.setUserVisibleHint(isVisibleToUser)
-        if (isVisibleToUser && contextScrollView != null) {
-            setFabVisibilityInActivity(contextScrollView.scrollY)
+        if (isVisibleToUser) {
+            setFabVisibilityInActivity(shouldFabBeVisible())
         }
     }
 
-    private fun setFabVisibilityInActivity(scrollYPos: Int) {
-        if (scrollYPos == 0) {
-            (activity as TranslationDetailsActivity).setFabVisibility(false)
-        } else {
-            (activity as TranslationDetailsActivity).setFabVisibility(true)
+    private fun shouldFabBeVisible(): Boolean {
+        if (contextScrollView == null) {
+            return false
+        }
+        val view = contextScrollView.getChildAt(contextScrollView.childCount - 1) as View
+        val diff = view.bottom - (contextScrollView.height + contextScrollView.scrollY)
+        return diff != 0 && contextScrollView.scrollY != 0
+    }
+
+    private fun setFabVisibilityInActivity(visible: Boolean) {
+        if (activity != null) {
+            (activity as TranslationDetailsActivity).setFabVisibility(visible)
         }
     }
+
     override fun onFabClicked() {
         activity?.appBarLayout?.setExpanded(true, true)
         contextScrollView.scrollTo(0, 0)
