@@ -26,26 +26,27 @@ class DefinitionsFragment : Fragment(), TranslationDetailsActivity.OnFabClickLis
 
     private lateinit var mViewContext: Context
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private fun getActivityComponent(): ActivityComponent {
+        return (activity as TranslationDetailsActivity).getActivityComponent()
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_definitions, container, false)
+            .also { mViewContext = it.context }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         val component = DaggerFragmentComponent.builder()
             .activityComponent(getActivityComponent())
             .build()
 
         component.inject(this)
-    }
-
-    private fun getActivityComponent(): ActivityComponent {
-        return (activity as TranslationDetailsActivity).getActivityComponent()
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_definitions, container, false).also { mViewContext = it.context }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
         val translationJson: String = arguments!!.getString(TRANSLATION_EXTRA, "")
         val translation: Translation = gson.fromJson(translationJson, Translation::class.java)
@@ -90,7 +91,8 @@ class DefinitionsFragment : Fragment(), TranslationDetailsActivity.OnFabClickLis
         val definitionsAdapter = DefinitionsCardsAdapter(ArrayList())
 
         translation.apply {
-            definitionsPhrase.text = mViewContext.getString(R.string.definitions_phrase, translatingPhrase)
+            definitionsPhrase.text =
+                mViewContext.getString(R.string.definitions_phrase, translatingPhrase)
 
             definitionsRecyclerView.apply {
                 layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)

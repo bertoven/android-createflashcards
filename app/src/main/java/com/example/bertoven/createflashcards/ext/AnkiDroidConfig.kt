@@ -25,20 +25,20 @@ internal object AnkiDroidConfig {
         ".big { font-size: 48px; }\n" +
         ".small { font-size: 14px;}\n" +
         "table, td, th { border: 1px solid black; }\n" +
-        "table { border-collapse: collapse; width: 100% }\n" +
-        "th, td { text-align: left; }\n" +
+        "table { border-collapse: collapse; width: 100%; }\n" +
+        "th, td { text-align: left; padding: 2px; }\n" +
         "th { font-weight: bold; }" +
-        ".images { flex-wrap: wrap }\n" +
-        "img { width: 100px; height: auto }\n" +
+        ".images { display: flex; flex-wrap: wrap; justify-content: space-evenly; }\n" +
+        "img { width: auto; height: 100px; margin: 2px; }\n" +
         ".definition {  }\n" +
-        ".example { color: gray }\n"
+        ".example { color: gray; }\n"
     // Template for the question of each card
     val QFMT1 = "<div class=big>{{expression}}</div>"
     val QFMT = arrayOf(QFMT1)
     // Template for the answer (use identical for both sides)
-    val AFMT1 = "<div class=big>{{expression}}</div>[sound:{{fileName}}]\n" +
+    val AFMT1 = "<div class=big>{{expression}}</div>{{#fileName}}[sound:{{fileName}}]{{/fileName}}\n" +
         "<div class=small>{{meaning}}</div><br>\n" +
-        "<div class=small>{{definitions}}</div>\n" +
+        "<div class=small>{{definitions}}</div><br>\n" +
         "{{#images}}<div class=images>{{images}}</div><br>{{/images}}"
     val AFMT = arrayOf(AFMT1)
     // Define two keys which will be used when using legacy ACTION_SEND intent

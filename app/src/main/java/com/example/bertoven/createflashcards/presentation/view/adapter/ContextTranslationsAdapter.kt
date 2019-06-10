@@ -1,12 +1,15 @@
 package com.example.bertoven.createflashcards.presentation.view.adapter
 
+import android.content.ActivityNotFoundException
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bertoven.createflashcards.R
 import com.example.bertoven.createflashcards.data.entity.ContextTranslation
+import com.example.bertoven.createflashcards.ext.createGoogleTranslateIntent
 
 class ContextTranslationsAdapter(private var contextTranslations: ArrayList<ContextTranslation>)
     : RecyclerView.Adapter<ContextTranslationsAdapter.ViewHolder>() {
@@ -28,8 +31,19 @@ class ContextTranslationsAdapter(private var contextTranslations: ArrayList<Cont
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val contextTranslationsItem = contextTranslations[position]
 
-        holder.wordWithContext.text = contextTranslationsItem.wordWithContext
+        val baseText = contextTranslationsItem.wordWithContext
+        holder.wordWithContext.text = baseText
         holder.contextTranslation.text = contextTranslationsItem.translation
+
+        val context = holder.itemView.context
+        holder.itemView.setOnClickListener {
+            try {
+                context.startActivity(createGoogleTranslateIntent(baseText))
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(context, "Sorry, No Google Translation Installed",
+                    Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {

@@ -1,16 +1,25 @@
 package com.example.bertoven.createflashcards.presentation.view.activity
 
+import android.Manifest
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.speech.tts.TextToSpeech
+import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.view.isVisible
 import com.example.bertoven.createflashcards.BaseApplication
 import com.example.bertoven.createflashcards.R
@@ -25,6 +34,7 @@ import com.example.bertoven.createflashcards.di.module.ActivityModule
 import com.example.bertoven.createflashcards.domain.Translation
 import com.example.bertoven.createflashcards.ext.AnkiDroidConfig
 import com.example.bertoven.createflashcards.ext.AnkiDroidHelper
+import com.example.bertoven.createflashcards.ext.dpToPx
 import com.example.bertoven.createflashcards.presentation.presenter.TranslationDetailsPresenter
 import com.example.bertoven.createflashcards.presentation.view.TranslationDetailsView
 import com.example.bertoven.createflashcards.presentation.view.adapter.TranslationPagerAdapter
@@ -110,13 +120,26 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_translation, menu)
+        menu?.findItem(R.id.translation_add)?.isVisible = mTranslation != null
+        menu?.findItem(R.id.translation_add_with)?.isVisible = mTranslation != null
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.translation_add -> {
-                sendCardToAnki()
+                if (checkAnkiPermissions() && isStoragePermissionGranted(RC_WRITE_EXTERNAL_DATA)) {
+                    addCardToAnkiDroid(getCardData("-"))
+                }
+                true
+            }
+            R.id.translation_add_with -> {
+                if (checkAnkiPermissions() && isStoragePermissionGranted(
+                        RC_WRITE_EXTERNAL_DATA_WITH_CUSTOM_TEXT
+                    )) {
+
+                    showAddWithDialog()
+                }
                 true
             }
             R.id.translation_search -> {
@@ -125,6 +148,44 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun checkAnkiPermissions(): Boolean {
+        return if (ankiDroidHelper.shouldRequestPermission()) {
+            ankiDroidHelper.requestPermission(this, RC_ANKI_PERM_REQUEST)
+            false
+        } else {
+            true
+        }
+    }
+
+    private fun showAddWithDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Wpisz wyrażenie, które chcesz dodać do karty.")
+
+        // Set up the input
+        val input = EditText(this)
+        input.setSingleLine()
+        val container = FrameLayout(this)
+        val params = FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        params.marginStart = dpToPx(this, 16)
+        params.marginEnd = dpToPx(this, 16)
+        input.layoutParams = params
+        container.addView(input)
+
+        // Specify the type of input expected
+        input.inputType = InputType.TYPE_CLASS_TEXT
+        builder.setView(container)
+
+        // Set up the buttons
+        builder.setPositiveButton("OK") { _, _ ->
+            addCardToAnkiDroid(getCardData(input.text.toString()))
+        }
+        builder.setNegativeButton("Anuluj") { dialog, _ -> dialog.cancel() }
+
+        builder.show()
     }
 
     override fun onPause() {
@@ -140,13 +201,14 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
 
         val prefs = getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE)
 
-        prefs.edit().apply {
-            if (mTranslation != null) {
-                val translation = gson.toJson(mTranslation)
-                putString(SHARED_PREFS_TRANSLATION, translation)
+        prefs.edit()
+            .apply {
+                if (mTranslation != null) {
+                    val translation = gson.toJson(mTranslation)
+                    putString(SHARED_PREFS_TRANSLATION, translation)
+                }
+                apply()
             }
-            apply()
-        }
 
         super.onStop()
     }
@@ -157,14 +219,15 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
 
     override fun showTranslation(translation: Translation) {
         hideProgressBar()
-
         layoutStub.layoutResource = R.layout.content_translation_details
         layoutStub.inflate()
 
         mTranslation = translation
+        invalidateOptionsMenu()
 
         val itemCount = getPageCount(translation)
-        val pagerAdapter = TranslationPagerAdapter(this, itemCount, translation, supportFragmentManager)
+        val pagerAdapter =
+            TranslationPagerAdapter(this, itemCount, translation, supportFragmentManager)
         viewPager.adapter = pagerAdapter
         tabLayout.setupWithViewPager(viewPager)
         fab.setOnClickListener {
@@ -181,29 +244,55 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
 
     override fun showNoTranslation() {
         hideProgressBar()
-
+        invalidateOptionsMenu()
         layoutStub.layoutResource = R.layout.content_translation_details_empty
         layoutStub.inflate()
     }
 
-    private fun sendCardToAnki(): Boolean {
-        if (AnkiDroidHelper.isApiAvailable(this)) {
-            // Request permission to access API if required
-            if (ankiDroidHelper.shouldRequestPermission()) {
-                ankiDroidHelper.requestPermission(this, RC_PERM_REQUEST)
-                return true
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        if ((requestCode == RC_ANKI_PERM_REQUEST ||
+                requestCode == RC_ANKI_PERM_REQUEST_WITH_TEXT) &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+            if (requestCode == RC_ANKI_PERM_REQUEST) {
+                isStoragePermissionGranted(RC_WRITE_EXTERNAL_DATA)
+            } else {
+                isStoragePermissionGranted(RC_WRITE_EXTERNAL_DATA_WITH_CUSTOM_TEXT)
             }
+        } else if ((requestCode == RC_WRITE_EXTERNAL_DATA ||
+                requestCode == RC_WRITE_EXTERNAL_DATA_WITH_CUSTOM_TEXT) &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+            if (requestCode == RC_WRITE_EXTERNAL_DATA) {
+                addCardToAnkiDroid(getCardData("-"))
+            } else {
+                showAddWithDialog()
+            }
+        } else {
+            Toast.makeText(
+                this,
+                R.string.permission_denied, Toast.LENGTH_LONG
+            ).show()
         }
-        return true
     }
 
-    private fun getCardDataWithoutImage(): HashMap<String, String> = hashMapOf(
+    private fun getCardData(extra: String): HashMap<String, String> = hashMapOf(
         "expression" to mTranslation!!.translatingPhrase,
-        "meaning" to getQuickResultsHtml(mTranslation!!.quickResultsEntries),
-        "definitions" to getDefinitionsHtml(mTranslation!!.definitions)
+        "meaning" to getQuickResultsHtml(
+            listOf(
+                listOf(QuickResultsEntry("Moje", arrayListOf(extra))),
+                mTranslation!!.quickResultsEntries!!
+            ).flatten()
+        ),
+        "definitions" to getDefinitionsHtml(mTranslation!!.definitions),
+        "images" to getImagesHtml(mTranslation!!.imagesData)
     )
 
-    private fun getQuickResultsHtml(quickResultsEntries: ArrayList<QuickResultsEntry>?): String {
+    private fun getQuickResultsHtml(quickResultsEntries: List<QuickResultsEntry>?): String {
         if (quickResultsEntries == null) {
             return "brak tłumaczeń"
         }
@@ -219,7 +308,10 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
         return str
     }
 
-    private fun getImagesHtml(imagesData: ImagesData): String {
+    private fun getImagesHtml(imagesData: ImagesData?): String {
+        if (imagesData == null) {
+            return ""
+        }
         var str = ""
         for (item in imagesData.items) {
             str += "<img src=\"${item.link}\">"
@@ -258,6 +350,21 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
         return str
     }
 
+    private fun isStoragePermissionGranted(requestCode: Int): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                true
+            } else {
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), requestCode
+                )
+                false
+            }
+        } else {
+            true
+        }
+    }
+
     private fun createAudioFileFromText(text: String): Int {
         val fileName = text.replace(" ", "_")
         val extStorageDir = Environment.getExternalStorageDirectory().path
@@ -272,12 +379,8 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
 
     private fun getPageCount(translation: Translation): Int {
         with(translation) {
-            return if (quickResultsEntries != null && definitions != null &&
-                contextTranslations != null)
-                3
-            else if (quickResultsEntries != null && definitions != null ||
-                quickResultsEntries != null && contextTranslations != null)
-                2
+            return if (quickResultsEntries != null && definitions != null && contextTranslations != null) 3
+            else if (quickResultsEntries != null && definitions != null || quickResultsEntries != null && contextTranslations != null) 2
             else {
                 1
             }
@@ -335,10 +438,20 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
      * @return might be null if there was an error
      */
     private fun getModelId(): Long? {
-        var mid = ankiDroidHelper.findModelIdByName(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS.size)
+        var mid = ankiDroidHelper.findModelIdByName(
+            AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS.size
+        )
         if (mid == null) {
-            mid = ankiDroidHelper.api.addNewCustomModel(AnkiDroidConfig.MODEL_NAME, AnkiDroidConfig.FIELDS,
-                AnkiDroidConfig.CARD_NAMES, AnkiDroidConfig.QFMT, AnkiDroidConfig.AFMT, AnkiDroidConfig.CSS, getDeckId(), null)
+            mid = ankiDroidHelper.api.addNewCustomModel(
+                AnkiDroidConfig.MODEL_NAME,
+                AnkiDroidConfig.FIELDS,
+                AnkiDroidConfig.CARD_NAMES,
+                AnkiDroidConfig.QFMT,
+                AnkiDroidConfig.AFMT,
+                AnkiDroidConfig.CSS,
+                getDeckId(),
+                null
+            )
             ankiDroidHelper.storeModelReference(AnkiDroidConfig.MODEL_NAME, mid)
         }
         return mid
@@ -348,18 +461,26 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
      * Use the instant-add API to add flashcards directly to AnkiDroid.
      * @param card List of cards to be added. Each card has a HashMap of field name / field value pairs.
      */
-    private fun addCardsToAnkiDroid(card: HashMap<String, String>) {
+    private fun addCardToAnkiDroid(card: HashMap<String, String>) {
         when (createAudioFileFromText(mTranslation!!.translatingPhrase)) {
             TextToSpeech.SUCCESS -> {
-                Toast.makeText(this, resources.getString(R.string.create_audio_success), Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this, resources.getString(R.string.create_audio_success), Toast.LENGTH_LONG
+                ).show()
                 card["fileName"] = mTranslation!!.translatingPhrase.replace(" ", "_") + ".mp3"
             }
             FILE_ALREADY_EXISTS -> {
-                Toast.makeText(this, resources.getString(R.string.create_audio_file_already_exists), Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this,
+                    resources.getString(R.string.create_audio_file_already_exists),
+                    Toast.LENGTH_LONG
+                ).show()
                 card["fileName"] = mTranslation!!.translatingPhrase.replace(" ", "_") + ".mp3"
             }
             TextToSpeech.ERROR -> {
-                Toast.makeText(this, resources.getString(R.string.create_audio_fail), Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    this, resources.getString(R.string.create_audio_fail), Toast.LENGTH_LONG
+                ).show()
                 card["fileName"] = ""
             }
         }
@@ -367,13 +488,15 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
         val modelId = getModelId()
         if (deckId == null || modelId == null) {
             // we had an API error, report failure and return
-            Toast.makeText(this, resources.getString(R.string.card_add_fail), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, resources.getString(R.string.card_add_fail), Toast.LENGTH_LONG)
+                .show()
             return
         }
         val fieldNames = ankiDroidHelper.api.getFieldList(modelId)
         if (fieldNames == null) {
             // we had an API error, report failure and return
-            Toast.makeText(this, resources.getString(R.string.card_add_fail), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, resources.getString(R.string.card_add_fail), Toast.LENGTH_LONG)
+                .show()
             return
         }
         // Build list of fields and tags
@@ -398,10 +521,13 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
         ankiDroidHelper.removeDuplicates(fields, tags, modelId)
         val added = ankiDroidHelper.api.addNotes(modelId, deckId, fields, tags)
         if (added != 0) {
-            Toast.makeText(this, resources.getString(R.string.n_items_added, added), Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this, resources.getString(R.string.n_items_added, added), Toast.LENGTH_LONG
+            ).show()
         } else {
             // API indicates that a 0 return value is an error
-            Toast.makeText(this, resources.getString(R.string.card_add_fail), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, resources.getString(R.string.card_add_fail), Toast.LENGTH_LONG)
+                .show()
         }
     }
 
@@ -410,6 +536,9 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
     }
 
     companion object {
-        private const val RC_PERM_REQUEST = 9001
+        private const val RC_ANKI_PERM_REQUEST = 9001
+        private const val RC_ANKI_PERM_REQUEST_WITH_TEXT = 9002
+        private const val RC_WRITE_EXTERNAL_DATA = 9003
+        private const val RC_WRITE_EXTERNAL_DATA_WITH_CUSTOM_TEXT = 9004
     }
 }

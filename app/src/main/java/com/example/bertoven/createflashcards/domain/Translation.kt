@@ -4,7 +4,7 @@ import com.example.bertoven.createflashcards.data.entity.*
 
 data class Translation(
     val translatingPhrase: String,
-    val quickResultsEntries: ArrayList<QuickResultsEntry>?,
+    val quickResultsEntries: List<QuickResultsEntry>?,
     val translationDetails: ArrayList<TranslationDetails>?,
     val synonyms: ArrayList<SynonymsEntry>?,
     val contextTranslations: ArrayList<ContextTranslation>?,

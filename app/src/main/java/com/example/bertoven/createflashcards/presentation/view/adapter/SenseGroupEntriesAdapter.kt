@@ -1,13 +1,11 @@
 package com.example.bertoven.createflashcards.presentation.view.adapter
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TableLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bertoven.createflashcards.R
@@ -17,11 +15,12 @@ import com.example.bertoven.createflashcards.presentation.view.activity.ACTION_S
 import com.example.bertoven.createflashcards.presentation.view.activity.PHRASE_EXTRA
 import com.example.bertoven.createflashcards.presentation.view.activity.TranslationDetailsActivity
 
-class SenseGroupEntriesAdapter(private var senseGroupEntries: ArrayList<SenseGroupEntry>)
-    : RecyclerView.Adapter<SenseGroupEntriesAdapter.ViewHolder>() {
+class SenseGroupEntriesAdapter(private var senseGroupEntries: ArrayList<SenseGroupEntry>) :
+    RecyclerView.Adapter<SenseGroupEntriesAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_sense_group_entry, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_sense_group_entry, parent, false)
         return ViewHolder(view)
     }
 
@@ -97,15 +96,32 @@ class SenseGroupEntriesAdapter(private var senseGroupEntries: ArrayList<SenseGro
             val params = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                //                setMargins(0, 0, 0, dp8)
-            }
+            )
 
             val exampleLinearLayout = LinearLayout(examplesContext).apply {
                 layoutParams = params
                 orientation = LinearLayout.VERTICAL
 
                 addView(TextView(examplesContext).apply {
+                    val drawable =
+                        ContextCompat.getDrawable(examplesContext, R.drawable.ic_go_outside_app)
+                    setCompoundDrawablesWithIntrinsicBounds(
+                        null,
+                        null,
+                        drawable,
+                        null
+                    )
+                    compoundDrawablePadding = dpToPx(context, 8)
+                    setOnClickListener {
+                        try {
+                            context.startActivity(createGoogleTranslateIntent(text.toString()))
+                        } catch (e: ActivityNotFoundException) {
+                            Toast.makeText(
+                                context, "Sorry, No Google Translation Installed",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                     text = example.first
                     setPadding(dp8, dp8, dp8, dp8)
                     background = ContextCompat.getDrawable(examplesContext, R.drawable.rounded_bg)

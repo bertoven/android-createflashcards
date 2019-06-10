@@ -5,6 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/rounded_bg"
+    android:drawableEnd="@drawable/ic_go_outside_app"
+    android:drawablePadding="8dp"
     android:lineSpacingExtra="-2dp"
     android:paddingStart="8dp"
     android:paddingTop="8dp"

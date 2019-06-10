@@ -1,6 +1,7 @@
 package com.example.bertoven.createflashcards.presentation.view.fragment
 
-import android.content.Context
+import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.graphics.Typeface
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
@@ -14,6 +15,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.LinearLayout.LayoutParams
 import android.widget.TextView
+import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
@@ -27,6 +29,7 @@ import com.example.bertoven.createflashcards.data.entity.TranslationDetails
 import com.example.bertoven.createflashcards.di.component.ActivityComponent
 import com.example.bertoven.createflashcards.di.component.DaggerFragmentComponent
 import com.example.bertoven.createflashcards.domain.Translation
+import com.example.bertoven.createflashcards.ext.createGoogleTranslateIntent
 import com.example.bertoven.createflashcards.ext.dpToPx
 import com.example.bertoven.createflashcards.ext.makeLinkSpan
 import com.example.bertoven.createflashcards.ext.makeLinksFocusable
@@ -53,28 +56,27 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
     lateinit var gson: Gson
 
     private var tts: TextToSpeech? = null
-    private lateinit var mViewContext: Context
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private fun getActivityComponent(): ActivityComponent {
+        return (activity as TranslationDetailsActivity).getActivityComponent()
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        return inflater.inflate(R.layout.fragment_translation_details, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         val component = DaggerFragmentComponent.builder()
             .activityComponent(getActivityComponent())
             .build()
 
         component.inject(this)
-    }
-
-    private fun getActivityComponent(): ActivityComponent {
-        return (activity as TranslationDetailsActivity).getActivityComponent()
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return inflater.inflate(R.layout.fragment_translation_details, container, false).also { mViewContext = it.context }
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
         val translationJson: String = arguments!!.getString(TRANSLATION_EXTRA, "")
         val translation = gson.fromJson(translationJson, Translation::class.java)
@@ -90,7 +92,7 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
 
     override fun onResume() {
         super.onResume()
-        tts = TextToSpeech(mViewContext.applicationContext, TextToSpeech.OnInitListener { status ->
+        tts = TextToSpeech(requireContext(), TextToSpeech.OnInitListener { status ->
             if (status != TextToSpeech.ERROR) {
                 tts?.language = Locale.UK
             }
@@ -134,8 +136,8 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
     }
 
     private fun populateView(translation: Translation) {
-        val dp4 = dpToPx(mViewContext, 4)
-        val dp16 = dpToPx(mViewContext, 16)
+        val dp4 = dpToPx(requireContext(), 4)
+        val dp16 = dpToPx(requireContext(), 16)
 
         val params = LayoutParams(
             LayoutParams.MATCH_PARENT,
@@ -143,7 +145,17 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
         ).apply { setMargins(0, dp4, 0, dp4) }
 
         translation.apply {
-            detailsPhrase.text = mViewContext.getString(R.string.translating_phrase, translatingPhrase)
+            detailsPhrase.text = getString(R.string.translating_phrase, translatingPhrase)
+            detailsPhrase.setOnClickListener {
+                try {
+                    startActivity(createGoogleTranslateIntent(translatingPhrase))
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(
+                        requireContext(), "Sorry, No Google Translation Installed",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
 
             createQuickResultsCard(quickResultsEntries!!, params)
             createImagesCard(imagesData!!, params, dp16)
@@ -154,7 +166,9 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
                 val synonymsText = getString(R.string.synonyms_header)
 
                 val clickableSpan = makeLinkSpan(synonymsText, View.OnClickListener {
-                    val synonymsYPosition = translationCards.getChildAt(translationCards.childCount - 1).top
+                    val synonymsYPosition =
+                        translationCards.getChildAt(translationCards.childCount - 1)
+                            .top
                     activity?.appBarLayout?.setExpanded(false, true)
                     detailsScrollView.scrollTo(0, synonymsYPosition)
                     detailsScrollView.fling(0)
@@ -166,16 +180,19 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
         }
     }
 
-    private fun createQuickResultsCard(quickResultEntries: ArrayList<QuickResultsEntry>, params: LayoutParams) {
+    private fun createQuickResultsCard(
+        quickResultEntries: List<QuickResultsEntry>,
+        params: LayoutParams
+    ) {
         val quickResultsAdapter = QuickResultsAdapter(ArrayList())
 
-        val recyclerView = RecyclerView(mViewContext).apply {
+        val recyclerView = RecyclerView(requireContext()).apply {
             layoutManager = LinearLayoutManager(context)
             isNestedScrollingEnabled = false
             adapter = quickResultsAdapter
         }
 
-        val card = CardView(mViewContext).apply {
+        val card = CardView(requireContext()).apply {
             layoutParams = params
             setBackgroundResource(R.drawable.quick_results_bg)
             addView(recyclerView)
@@ -185,10 +202,11 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
         quickResultsAdapter.loadNewData(quickResultEntries)
     }
 
+    @SuppressLint("WrongConstant")
     private fun createImagesCard(imagesData: ImagesData, params: LayoutParams, padding: Int) {
         val imagesDataAdapter = ImagesDataAdapter(emptyList())
 
-        val recyclerView = RecyclerView(mViewContext).apply {
+        val recyclerView = RecyclerView(requireContext()).apply {
             layoutManager = FlexboxLayoutManager(context).also {
                 it.flexWrap = FlexWrap.WRAP
                 it.flexDirection = FlexDirection.ROW
@@ -202,7 +220,7 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
             )
         }
 
-        val card = CardView(mViewContext).apply {
+        val card = CardView(requireContext()).apply {
             layoutParams = params
             setContentPadding(padding, padding, padding, padding)
             addView(recyclerView)
@@ -212,13 +230,15 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
         imagesDataAdapter.loadData(imagesData.items)
     }
 
-    private fun createTranslationsDetailsCards(translationDetails: ArrayList<TranslationDetails>,
-                                               params: LayoutParams, padding: Int) {
+    private fun createTranslationsDetailsCards(
+        translationDetails: ArrayList<TranslationDetails>,
+        params: LayoutParams, padding: Int
+    ) {
 
         for (translationsDetail in translationDetails) {
             val senseGroupsAdapter = SenseGroupsAdapter(ArrayList())
 
-            val recyclerView = RecyclerView(mViewContext).apply {
+            val recyclerView = RecyclerView(requireContext()).apply {
                 layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.WRAP_CONTENT
@@ -241,7 +261,7 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
 
             str.setSpan(StyleSpan(Typeface.BOLD), 0, index - 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
 
-            val linearLayout = LinearLayout(mViewContext).apply {
+            val linearLayout = LinearLayout(requireContext()).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LayoutParams(
                     LayoutParams.MATCH_PARENT,
@@ -265,7 +285,8 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
                         setImageResource(R.drawable.ic_sound)
 
                         setOnClickListener {
-                            val toSpeak = str.toString().substring(0, index - 1)
+                            val toSpeak = str.toString()
+                                .substring(0, index - 1)
                             tts?.speak(toSpeak, TextToSpeech.QUEUE_FLUSH, null, null)
                         }
                     })
@@ -279,7 +300,7 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
                 addView(recyclerView)
             }
 
-            val card = CardView(mViewContext).apply {
+            val card = CardView(requireContext()).apply {
                 layoutParams = params
                 setContentPadding(padding, padding, padding, padding)
                 addView(linearLayout)
@@ -291,10 +312,14 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
         }
     }
 
-    private fun createSynonymsCard(synonyms: ArrayList<SynonymsEntry>, params: LayoutParams, padding: Int) {
+    private fun createSynonymsCard(
+        synonyms: ArrayList<SynonymsEntry>,
+        params: LayoutParams,
+        padding: Int
+    ) {
         val synonymsAdapter = SynonymsAdapter(ArrayList())
 
-        val recyclerView = RecyclerView(mViewContext).apply {
+        val recyclerView = RecyclerView(requireContext()).apply {
             layoutParams = LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT
@@ -304,7 +329,7 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
             adapter = synonymsAdapter
         }
 
-        val linearLayout = LinearLayout(mViewContext).apply {
+        val linearLayout = LinearLayout(requireContext()).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LayoutParams(
                 LayoutParams.MATCH_PARENT,
@@ -317,7 +342,7 @@ class TranslationDetailsFragment : Fragment(), TranslationDetailsActivity.OnFabC
             addView(recyclerView)
         }
 
-        val card = CardView(mViewContext).apply {
+        val card = CardView(requireContext()).apply {
             layoutParams = params
             setContentPadding(padding, padding, padding, padding)
             addView(linearLayout)

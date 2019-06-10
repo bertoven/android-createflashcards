@@ -10,7 +10,7 @@ import com.example.bertoven.createflashcards.data.entity.QuickResultsEntry
 import com.example.bertoven.createflashcards.ext.getActivity
 import kotlinx.android.synthetic.main.activity_translation_details.*
 
-class QuickResultsAdapter(private var quickResults: ArrayList<QuickResultsEntry>)
+class QuickResultsAdapter(private var quickResults: List<QuickResultsEntry>)
     : RecyclerView.Adapter<QuickResultsAdapter.ViewHolder>() {
 
     private lateinit var mRecyclerView: RecyclerView
@@ -29,7 +29,7 @@ class QuickResultsAdapter(private var quickResults: ArrayList<QuickResultsEntry>
         return quickResults.size
     }
 
-    fun loadNewData(newQuickResults: ArrayList<QuickResultsEntry>) {
+    fun loadNewData(newQuickResults: List<QuickResultsEntry>) {
         quickResults = newQuickResults
         notifyDataSetChanged()
     }
