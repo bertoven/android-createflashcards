@@ -57,7 +57,8 @@ const val ACTION_SHOW_TRANSLATION = "showTranslation"
 
 private const val FILE_ALREADY_EXISTS = -2
 
-class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
+class
+TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
 
     interface OnFabClickListener {
         fun onFabClicked()
@@ -120,15 +121,18 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu_translation, menu)
-        menu?.findItem(R.id.translation_add)?.isVisible = mTranslation != null
-        menu?.findItem(R.id.translation_add_with)?.isVisible = mTranslation != null
+        menu?.findItem(R.id.translation_add)?.isVisible = mTranslation?.quickResultsEntries != null
+        menu?.findItem(R.id.translation_add_with)?.isVisible =
+            mTranslation?.quickResultsEntries != null
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.translation_add -> {
-                if (checkAnkiPermissions() && isStoragePermissionGranted(RC_WRITE_EXTERNAL_DATA)) {
+                if (checkAnkiPermissions() && isStoragePermissionGranted(RC_WRITE_EXTERNAL_DATA) &&
+                    mTranslation?.quickResultsEntries != null) {
+
                     addCardToAnkiDroid(getCardData("-"))
                 }
                 true
@@ -136,7 +140,7 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
             R.id.translation_add_with -> {
                 if (checkAnkiPermissions() && isStoragePermissionGranted(
                         RC_WRITE_EXTERNAL_DATA_WITH_CUSTOM_TEXT
-                    )) {
+                    ) && mTranslation?.quickResultsEntries != null) {
 
                     showAddWithDialog()
                 }
@@ -391,11 +395,13 @@ class TranslationDetailsActivity : AppCompatActivity(), TranslationDetailsView {
         when (intent.action) {
             Intent.ACTION_SEARCH -> {
                 val phrase = intent.getStringExtra(SearchManager.QUERY)
-
                 translationDetailsPresenter.getTranslationData(phrase)
             }
             Intent.ACTION_VIEW -> {
-                val urlPathSuffix = intent.getStringExtra(SearchManager.EXTRA_DATA_KEY)
+                val data = intent.data
+                val urlPathSuffix = data?.getQueryParameter("phrase") ?: intent.getStringExtra(
+                    SearchManager.EXTRA_DATA_KEY
+                )
                 val phrase = urlPathSuffix.replace("-", " ")
 
                 translationDetailsPresenter.getTranslationData(phrase)
